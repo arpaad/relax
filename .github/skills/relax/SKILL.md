@@ -22,7 +22,7 @@ go get github.com/luckyman42/relax
 import "github.com/luckyman42/relax"
 ```
 
-Requires **Go 1.25+** (uses generics).
+Requires **Go 1.24+**.
 
 ## When to Use
 
@@ -48,10 +48,8 @@ Requires **Go 1.25+** (uses generics).
 
 ```go
 type Failer struct {
-	Err       error
-	Stack     []byte
-	Timestamp time.Time
-	Context   map[string]any
+	Err     error
+	Context map[string]any
 }
 ```
 
@@ -60,8 +58,6 @@ type Failer struct {
 | Field | Type | Description |
 |-------|------|-------------|
 | `Err` | `error` | The original wrapped error |
-| `Stack` | `[]byte` | Stack trace captured at failure creation (`runtime/debug.Stack()`) |
-| `Timestamp` | `time.Time` | Time when the `Failer` was created (`time.Now()`) |
 | `Context` | `map[string]any` | Optional structured key/value metadata |
 
 **Methods:**
@@ -142,7 +138,7 @@ func HandleFailer(fn func(), onError func(error))
 ```go
 // ConvertToFailer converts any error into a Failer value.
 // If err is already a Failer (or wraps one via errors.As), returns it unchanged.
-// Otherwise creates a new Failer with current stack and timestamp.
+// Otherwise creates a new Failer wrapping err.
 // If err is nil, returns a zero-value Failer.
 func ConvertToFailer(err error) Failer
 
@@ -263,11 +259,7 @@ if errors.As(err, &target) {
 }
 ```
 
-Only inspect `Failer` directly when you need:
-
-- `Stack`
-- `Timestamp`
-- `Context`
+Only inspect `Failer` directly when you need `Context`. For everything else, use `errors.As` or `errors.Is` against the inner domain error.
 
 ### 4. Add Structured Context
 
@@ -282,6 +274,13 @@ if err := saveUser(user); err != nil {
 
 If the error is already a `Failer`, context is merged instead of double-wrapping.
 
+Keys are stringified using `fmt.Sprint`; the last write wins for a given key. To avoid collisions when multiple layers annotate the same failure, use namespaced keys:
+
+```go
+relax.FailWith(err, "db.operation", "save")
+relax.FailWith(err, "http.operation", "POST /users")
+```
+
 ### 5. Goroutine Boundary
 
 ```go
@@ -294,6 +293,43 @@ go relax.HandleFailer(func() {
 ```
 
 Use `HandleFailer` directly when the code runs synchronously and you want an explicit local handler.
+
+## Error Integration
+
+Three patterns for using `relax` with standard Go error types:
+
+**`fmt.Errorf` with `%w`** — add context while keeping the error chain intact:
+
+```go
+relax.FailWith(fmt.Errorf("loading user %d: %w", id, err))
+// errors.As reaches the original error through Failer.Unwrap() and fmt.Errorf's chain.
+```
+
+**Sentinel errors with `errors.Is`** — works automatically through `Failer.Unwrap()`:
+
+```go
+var ErrNotFound = errors.New("not found")
+
+relax.FailWith(ErrNotFound)
+
+// At the boundary — true because Failer.Unwrap() returns ErrNotFound:
+errors.Is(err, ErrNotFound)
+```
+
+**`errors.Join` (Go 1.20+)** — when multiple errors occur inside a boundary:
+
+```go
+relax.FailWith(errors.Join(errValidation, errDatabase))
+// Both errors are reachable via errors.As through the Unwrap() []error interface.
+```
+
+If stack traces are needed, wrap the error before passing it to `FailWith`:
+
+```go
+relax.FailWith(fmt.Errorf("operation failed: %w", err))
+```
+
+The wrapped error remains accessible via `errors.As` and `errors.Is`. `relax` does not endorse any specific stack trace library.
 
 ## Guidance for Agents
 
@@ -335,18 +371,17 @@ The library guarantees the following invariants:
 1. Only `Failer` panics are recovered by `Check*` and `HandleFailer`.
 2. Non-`Failer` panics (programmer bugs, runtime faults) propagate unchanged.
 3. The original error is always preserved through `Failer.Unwrap()`.
-4. Stack traces are captured once when the failure is first created.
-5. Existing `Failer` values are never double-wrapped — `FailWith` on a `Failer` re-panics it directly.
-6. `errors.Is` and `errors.As` work transparently against the inner error.
-7. `FailWith(nil)` is always a no-op.
-8. `HandleFailer` with a nil `onError` panics immediately (fail-fast on misconfiguration).
+4. Existing `Failer` values are never double-wrapped — `FailWith` on a `Failer` re-panics it directly.
+5. `errors.Is` and `errors.As` work transparently against the inner error.
+6. `FailWith(nil)` is always a no-op.
+7. `HandleFailer` with a nil `onError` panics immediately (fail-fast on misconfiguration).
 
 ## Behavioral Details
 
 ### FailWith Semantics
 
 - `FailWith(nil)` → no-op, returns immediately.
-- `FailWith(normalErr)` → creates a new `Failer{Err: normalErr, Stack: ..., Timestamp: ...}` and panics with it.
+- `FailWith(normalErr)` → creates a new `Failer{Err: normalErr}` and panics with it.
 - `FailWith(existingFailer)` → calls `existingFailer.Fail()`, re-panicking the same `Failer` (no new wrapping).
 - `FailWith(err, "key1", val1, "key2", val2)` → attaches key/value pairs to `Failer.Context`.
 

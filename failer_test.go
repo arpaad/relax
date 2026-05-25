@@ -19,9 +19,6 @@ func TestFailWith(t *testing.T) {
 		if failer.Err.Error() != "test error" {
 			t.Errorf("Expected 'test error', got '%s'", failer.Err.Error())
 		}
-		if len(failer.Stack) == 0 {
-			t.Error("Expected stack trace, but it was empty")
-		}
 	}()
 
 	FailWith(errors.New("test error"))
@@ -39,9 +36,6 @@ func TestFailWith_Pointer(t *testing.T) {
 		if failer.Err.Error() != "test error" {
 			t.Errorf("Expected 'test error', got '%s'", failer.Err.Error())
 		}
-		if len(failer.Stack) == 1 {
-			t.Error("Expected stack trace, but it was empty")
-		}
 	}()
 	FailWith(&Failer{Err: errors.New("test error")})
 }
@@ -50,7 +44,7 @@ func TestFailWith_nil(t *testing.T) {
 	defer func() {
 		r := recover()
 		if r != nil {
-			t.Fatal("Expected panic, but none occurred")
+			t.Fatal("Expected no panic, but one occurred")
 		}
 	}()
 	FailWith(nil)
@@ -74,9 +68,6 @@ func TestFailWith_Context(t *testing.T) {
 		}
 		if failer.Context["attempt"] != 3 {
 			t.Errorf("Expected context attempt=3, got %v", failer.Context["attempt"])
-		}
-		if failer.Timestamp.IsZero() {
-			t.Error("Expected Timestamp to be set")
 		}
 	}()
 
@@ -339,7 +330,7 @@ func TestFailerConcurrency(t *testing.T) {
 	errs := make(chan error, n)
 	var wg sync.WaitGroup
 	wg.Add(n)
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			defer wg.Done()
 			_, err := CheckValue(func() string {
@@ -367,7 +358,7 @@ func TestFailerConcurrency(t *testing.T) {
 
 func BenchmarkConvertToFailer(b *testing.B) {
 	err := errors.New("bench")
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = ConvertToFailer(err)
 	}
 }

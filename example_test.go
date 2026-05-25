@@ -157,13 +157,9 @@ func ExampleConvertToFailer() {
 	failer := relax.ConvertToFailer(err)
 
 	fmt.Println(failer.Err)
-	fmt.Println(failer.Timestamp.IsZero())
-	fmt.Println(len(failer.Stack) > 0)
 
 	// Output:
 	// boom
-	// false
-	// true
 }
 
 func ExampleIsFailer() {

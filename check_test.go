@@ -342,6 +342,24 @@ func TestHandleFailer_GoroutineNilOnErrorPanics(t *testing.T) {
 	}, nil)
 }
 
+func TestHandleFailer_NonFailerPanic_Repanics(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected re-panic, but none occurred")
+		}
+		if r != "non-failer panic" {
+			t.Fatalf("expected 'non-failer panic', got %v", r)
+		}
+	}()
+
+	HandleFailer(func() {
+		panic("non-failer panic")
+	}, func(err error) {
+		t.Error("onError should not be called for non-Failer panics")
+	})
+}
+
 func TestHandleFailer_ConcurrentMultipleCalls(t *testing.T) {
 	const n = 50
 
@@ -349,8 +367,6 @@ func TestHandleFailer_ConcurrentMultipleCalls(t *testing.T) {
 	errs := make(chan error, n)
 
 	for i := 0; i < n; i++ {
-		i := i
-
 		go HandleFailer(func() {
 			if i%2 == 0 {
 				FailWith(fmt.Errorf("fail %d", i))

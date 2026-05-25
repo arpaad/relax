@@ -3,24 +3,19 @@ package relax
 import (
 	"errors"
 	"fmt"
-	"runtime/debug"
-	"time"
 )
 
 // Failer is the public, exported representation of a thrown failure.
 //
-// A `Failer` preserves the original `error` (Err), a captured stack trace
-// (Stack), the time it was created (Timestamp), and an optional
+// A `Failer` preserves the original `error` (Err) and an optional
 // map[string]any Context for arbitrary key/value metadata. The library uses
 // `Failer` values to implement structured panic-based propagation inside
 // trusted internal call chains: callers may `panic` a `Failer` (via
-// `FailWith` or `Failer.Fail`) and a `CheckValue` boundary will convert that panic
+// `FailWith` or `Failer.Fail`) and a `Check*` boundary will convert that panic
 // back into a returned `error`.
 type Failer struct {
-	Err       error
-	Stack     []byte
-	Timestamp time.Time
-	Context   map[string]any
+	Err     error
+	Context map[string]any
 }
 
 // Error returns the underlying error message for this Failer.
@@ -57,14 +52,8 @@ func (f Failer) Fail(keyVals ...any) {
 }
 
 func newFailer(err error, keyVals ...any) Failer {
-	failer := Failer{
-		Err:       err,
-		Stack:     debug.Stack(),
-		Timestamp: time.Now(),
-	}
-
 	if len(keyVals) == 0 {
-		return failer
+		return Failer{Err: err}
 	}
 
 	context := make(map[string]any, (len(keyVals)+1)/2)
@@ -76,8 +65,7 @@ func newFailer(err error, keyVals ...any) Failer {
 		}
 		context[key] = value
 	}
-	failer.Context = context
-	return failer
+	return Failer{Err: err, Context: context}
 }
 
 func recoverFailer(r any) (Failer, bool) {
@@ -152,8 +140,7 @@ func FailOnError3[T1, T2, T3 any](v1 T1, v2 T2, v3 T3, err error) (T1, T2, T3) {
 // ConvertToFailer converts any error into a `Failer` value.
 //
 // If `err` is already a `Failer` (or wraps one), the underlying `Failer` is
-// returned unchanged. Otherwise a new `Failer` is created capturing the
-// current stack trace and timestamp.
+// returned unchanged. Otherwise a new `Failer` wrapping `err` is returned.
 func ConvertToFailer(err error) Failer {
 	if err == nil {
 		return Failer{}
