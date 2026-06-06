@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/luckyman42/relax"
+	"github.com/arpaad/relax"
 )
 
 var sink error

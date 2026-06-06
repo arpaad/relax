@@ -1,4 +1,4 @@
-module github.com/luckyman42/relax
+module github.com/arpaad/relax
 
 go 1.24
 

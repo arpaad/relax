@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/luckyman42/relax"
+	"github.com/arpaad/relax"
 )
 
 type userNotFoundError struct {

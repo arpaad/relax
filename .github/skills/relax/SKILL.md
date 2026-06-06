@@ -1,12 +1,12 @@
 ---
 name: relax
-description: 'Use when working with github.com/luckyman42/relax, choosing Check*, FailOnError*, HandleFailer, errors.As with Failer, or explaining panic-based error propagation in Go trusted internal layers.'
+description: 'Use when working with github.com/arpaad/relax, choosing Check*, FailOnError*, HandleFailer, errors.As with Failer, or explaining panic-based error propagation in Go trusted internal layers.'
 argument-hint: 'Describe the integration point or question about using relax'
 ---
 
 # Relax
 
-This skill teaches an agent how to use `github.com/luckyman42/relax` correctly.
+This skill teaches an agent how to use `github.com/arpaad/relax` correctly.
 
 Use it when writing code with the library, reviewing code that already uses it, or explaining the library to someone who is new to it.
 
@@ -15,18 +15,18 @@ This skill is **self-contained**. It includes the full public API surface with t
 ## Installation and Import
 
 ```bash
-go get github.com/luckyman42/relax
+go get github.com/arpaad/relax
 ```
 
 ```go
-import "github.com/luckyman42/relax"
+import "github.com/arpaad/relax"
 ```
 
 Requires **Go 1.24+**.
 
 ## When to Use
 
-- Integrating `github.com/luckyman42/relax` into a Go codebase
+- Integrating `github.com/arpaad/relax` into a Go codebase
 - Choosing between `FailWith`, `FailOnError*`, `Check*`, and `HandleFailer`
 - Explaining the mental model of panic-based propagation inside trusted internal layers
 - Showing how to use `errors.As` or `errors.Is` without depending on `Failer`

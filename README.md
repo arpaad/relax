@@ -1,11 +1,11 @@
 # Relax
 
-[![CI](https://img.shields.io/github/actions/workflow/status/luckyman42/relax/ci.yml?branch=main\&label=ci)](https://github.com/luckyman42/relax/actions)
-[![codecov](https://codecov.io/gh/luckyman42/relax/branch/main/graph/badge.svg)](https://codecov.io/gh/luckyman42/relax)
-[![Go Report Card](https://goreportcard.com/badge/github.com/luckyman42/relax)](https://goreportcard.com/report/github.com/luckyman42/relax)
-[![pkg.go.dev](https://pkg.go.dev/badge/github.com/luckyman42/relax)](https://pkg.go.dev/github.com/luckyman42/relax)
-![Go Version](https://img.shields.io/github/go-mod/go-version/luckyman42/relax)
-[![License](https://img.shields.io/github/license/luckyman42/relax)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/arpaad/relax/ci.yml?branch=main\&label=ci)](https://github.com/arpaad/relax/actions)
+[![codecov](https://codecov.io/gh/arpaad/relax/branch/main/graph/badge.svg)](https://codecov.io/gh/arpaad/relax)
+[![Go Report Card](https://goreportcard.com/badge/github.com/arpaad/relax)](https://goreportcard.com/report/github.com/arpaad/relax)
+[![pkg.go.dev](https://pkg.go.dev/badge/github.com/arpaad/relax)](https://pkg.go.dev/github.com/arpaad/relax)
+![Go Version](https://img.shields.io/github/go-mod/go-version/arpaad/relax)
+[![License](https://img.shields.io/github/license/arpaad/relax)](LICENSE)
 
 > Don't panic - just relax.
 
@@ -14,11 +14,11 @@
 ## Installation
 
 ```bash
-go get github.com/luckyman42/relax
+go get github.com/arpaad/relax
 ```
 
 ```go
-import "github.com/luckyman42/relax"
+import "github.com/arpaad/relax"
 ```
 
 ## Quick Start
@@ -30,7 +30,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/luckyman42/relax"
+	"github.com/arpaad/relax"
 )
 
 type User struct {
